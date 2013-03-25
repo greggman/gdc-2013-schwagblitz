@@ -102,6 +102,21 @@ function makeMaze() {
       connectNodes(node, xx + 1, yy);
     }
   }
+
+  for (var ii = 0; ii < 40; ++ii) {
+    var node = nodes[rand(nodes.length)];
+    if (node.connections.length > 1) {
+      var otherNdx = rand(node.connections.length);
+      var other = node.connections[otherNdx];
+      // find our node on the connection
+      var ndx = other.connections.indexOf(node);
+      if (ndx < 0) {
+        throw 'wat?'
+      }
+      other.connections.splice(ndx, 1);
+      node.connections.splice(otherNdx, 1);
+    }
+  }
 }
 
 function main() {
