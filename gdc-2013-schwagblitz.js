@@ -12,10 +12,13 @@ var g = {
   numAttendies: 1001,
   numConnectionsToBreak: 40,
   numNodesToDelete: 15,
+  numTrashcans: 20,
   rangeToPlayer: 1,
+  rangeToTrashcan: 1,
 };
 
 var nodes = [];
+var trashcans = [];
 var gridToNodeMap = [];
 var entities = [];
 var player;
@@ -54,7 +57,7 @@ Entity = function(startNode) {
   this.speed = 1 + Math.random() * 0.2;
   this.startX = 0;
   this.startY = 0;
-  this.haveFlyer = false;
+  this.hasFlyer = false;
   this.chooseDestination();
   this.moveTimer = Math.random() * this.speed;
   this.process(0);
@@ -76,13 +79,13 @@ Entity.prototype.process = function(elapsedTime) {
     var dx = this.x - player.x;
     var dy = this.y - player.y;
     if (dx * dx + dy * dy < g.rangeToPlayer * g.rangeToPlayer) {
-      this.haveFlyer = true;
+      this.hasFlyer = true;
     }
   }
 };
 
 Entity.prototype.draw = function(ctx) {
-  ctx.fillStyle = this.haveFlyer ? this.flyerColor : this.color;
+  ctx.fillStyle = this.hasFlyer ? this.flyerColor : this.color;
   ctx.fillRect(this.x, this.y, 5, 5);
 };
 
@@ -104,10 +107,24 @@ Entity.prototype.chooseDestination = function() {
     throw 'wtf';
   }
   this.oldNode = this.targetNode;
+  if (this.oldNode.trashcan) {
+    this.hasFlyer = false;
+  }
   this.targetNode = node;
   this.moveTimer = 0;
   this.startX = this.oldNode.x;
   this.startY = this.oldNode.y;
+};
+
+var Trashcan = function(node) {
+  this.node = node;
+  this.x = node.x;
+  this.y = node.y;
+};
+
+Trashcan.prototype.draw = function(ctx) {
+  ctx.fillStyle = "#ff00ff";
+  ctx.fillRect(this.x, this.y, 5, 5);
 };
 
 var Player = function(startNode) {
@@ -136,6 +153,7 @@ Node = function(x, y) {
   this.y = y;
   this.connections = [];
   this.byDir = [];
+  this.trashcan = undefined;
 };
 
 // dir:
@@ -146,6 +164,10 @@ Node = function(x, y) {
 Node.prototype.getConnectionInDirection = function(dir) {
   for (var ii = 0; ii < this.connections.length; ++ii) {
   }
+};
+
+Node.prototype.addTrashcan = function(trashcan) {
+  this.trashcan = trashcan;
 };
 
 Node.prototype.addConnection = function(node) {
@@ -244,6 +266,18 @@ function makeMaze() {
     }
   });
   nodes = keepNodes;
+
+  // Add trashcans
+  var trashcanNodes = [];
+  for (var ii = 0; ii < g.numTrashcans; ++ii) {
+    var node = nodes[rand(nodes.length)];
+    if (trashcanNodes.indexOf(node) < 0) {
+      trashcanNodes.push(node);
+      var trashcan = new Trashcan(node);
+      trashcans.push(trashcan);
+      node.addTrashcan(trashcan);
+    }
+  }
 }
 
 function addAttendies() {
@@ -286,7 +320,14 @@ function main() {
     ctx.save();
     entities.forEach(function(entity) {
       entity.draw(ctx);
-    })
+    });
+
+    // Draw Trashcans
+    trashcans.forEach(function(trashcan) {
+      trashcan.draw(ctx);
+    });
+
+    // Draw Player
     player.draw(ctx);
     ctx.restore();
 
