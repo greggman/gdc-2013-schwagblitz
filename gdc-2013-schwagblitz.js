@@ -11,6 +11,7 @@ var g = {
   mazeHeight: 10,
   numAttendies: 1001,
   numConnectionsToBreak: 40,
+  numNodesToDelete: 15,
 };
 
 var nodes = [];
@@ -152,20 +153,32 @@ function makeMaze() {
       nodes.push(node);
     }
   }
+
+  // delete some random nodes
+  for (var ii = 0; ii < g.numNodesToDelete; ++ii) {
+    var x = rand(g.mazeWidth);
+    var y = rand(g.mazeHeight);
+    var ndx = nodes.indexOf(gridToNodeMap[y][x]);
+    nodes.splice(ndx, 1);
+    gridToNodeMap[y][x] = undefined;
+  }
+
   // connect the nodes
   for (var yy = 0; yy < g.mazeHeight; ++yy) {
     for (var xx = 0; xx < g.mazeWidth; ++xx) {
       var node = gridToNodeMap[yy][xx];
-      connectNodes(node, xx, yy - 1);
-      connectNodes(node, xx, yy + 1);
-      connectNodes(node, xx - 1, yy);
-      connectNodes(node, xx + 1, yy);
+      if (node) {
+        connectNodes(node, xx, yy - 1);
+        connectNodes(node, xx, yy + 1);
+        connectNodes(node, xx - 1, yy);
+        connectNodes(node, xx + 1, yy);
+      }
     }
   }
 
   for (var ii = 0; ii < g.numConnectionsToBreak; ++ii) {
     var node = nodes[rand(nodes.length)];
-    if (node.connections.length > 2) {
+    if (node.connections.length > 3) {
       var otherNdx = rand(node.connections.length);
       var other = node.connections[otherNdx];
       // find our node on the connection
@@ -219,9 +232,34 @@ function main() {
     player.draw(ctx);
     ctx.restore();
 
-    requestAnimationFrame(process);
+    requestAnimFrame(process);
   }
   process();
 }
 
+/**
+ * Provides requestAnimationFrame in a cross browser way.
+ */
+this.requestAnimFrame = (function() {
+  return window.requestAnimationFrame ||
+         window.webkitRequestAnimationFrame ||
+         window.mozRequestAnimationFrame ||
+         window.oRequestAnimationFrame ||
+         window.msRequestAnimationFrame ||
+         function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+           return window.setTimeout(callback, 1000/60);
+         };
+})();
+
+/**
+ * Provides cancelRequestAnimationFrame in a cross browser way.
+ */
+this.cancelRequestAnimFrame = (function() {
+  return window.cancelCancelRequestAnimationFrame ||
+         window.webkitCancelRequestAnimationFrame ||
+         window.mozCancelRequestAnimationFrame ||
+         window.oCancelRequestAnimationFrame ||
+         window.msCancelRequestAnimationFrame ||
+         window.clearTimeout;
+})();
 
