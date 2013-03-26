@@ -138,6 +138,7 @@ function main() {
   function process() {
     var now = (new Date()).getTime() * 0.001;
     var elapsedTime = now - then;
+    elapsedTime = Math.min(elapsedTime, 0.1);  // not faster than 10fps
     then = now;
 
     // Process entities
