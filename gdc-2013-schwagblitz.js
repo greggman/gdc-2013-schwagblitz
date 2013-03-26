@@ -221,6 +221,7 @@ function main() {
 
   var player = new Player(nodes[rand(nodes.length)]);
 
+  var requestId;
   var then = (new Date()).getTime() * 0.001;
   function process() {
     var now = (new Date()).getTime() * 0.001;
@@ -244,9 +245,25 @@ function main() {
     player.draw(ctx);
     ctx.restore();
 
-    requestAnimFrame(process);
+    var requestId = requestAnimFrame(process);
   }
   process();
+
+  var resume = function() {
+    if (requestId === undefined) {
+      process();
+    }
+  };
+
+  var pause = function() {
+    if (requestId !== undefined) {
+      cancelRequestAnimFrame(requestId);
+      requestId = undefined;
+    }
+  };
+
+  window.addEventListener('focus', resume, false);
+  window.addEventListener('blur', pause, false);
 }
 
 /**
