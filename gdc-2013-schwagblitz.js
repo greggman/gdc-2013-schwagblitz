@@ -3,9 +3,15 @@
 window.onload = main;
 var canvas;
 var ctx;
-var numAttendies = 1001;
-var mazeWidth = 10;
-var mazeHeight = 10;
+
+var g = {
+  nodeSpacing: 50,
+  mazeWidth: 10,
+  mazeHeight: 10,
+  numAttendies: 1001,
+  numConnectionsToBreak: 40,
+};
+
 var nodes = [];
 var gridToNodeMap = [];
 var entities = [];
@@ -47,7 +53,7 @@ Entity.prototype.draw = function(ctx) {
   var x = lerp(this.startX, this.targetNode.x, l);
   var y = lerp(this.startY, this.targetNode.y, l);
   ctx.fillStyle = this.color;
-  ctx.fillRect(x, y, 0.1, 0.1);
+  ctx.fillRect(x, y, 5, 5);
 };
 
 Entity.prototype.chooseDestination = function() {
@@ -83,18 +89,18 @@ function connectNodes(node, x, y) {
 
 function makeMaze() {
   // make the nodes
-  for (var yy = 0; yy < mazeHeight; ++yy) {
+  for (var yy = 0; yy < g.mazeHeight; ++yy) {
     var gridRow = [];
     gridToNodeMap.push(gridRow);
-    for (var xx = 0; xx < mazeWidth; ++xx) {
-      var node = new Node(xx, yy);
+    for (var xx = 0; xx < g.mazeWidth; ++xx) {
+      var node = new Node(xx * g.nodeSpacing, yy * g.nodeSpacing);
       gridRow.push(node);
       nodes.push(node);
     }
   }
   // connect the nodes
-  for (var yy = 0; yy < mazeHeight; ++yy) {
-    for (var xx = 0; xx < mazeWidth; ++xx) {
+  for (var yy = 0; yy < g.mazeHeight; ++yy) {
+    for (var xx = 0; xx < g.mazeWidth; ++xx) {
       var node = gridToNodeMap[yy][xx];
       connectNodes(node, xx, yy - 1);
       connectNodes(node, xx, yy + 1);
@@ -103,7 +109,7 @@ function makeMaze() {
     }
   }
 
-  for (var ii = 0; ii < 40; ++ii) {
+  for (var ii = 0; ii < g.numConnectionsToBreak; ++ii) {
     var node = nodes[rand(nodes.length)];
     if (node.connections.length > 1) {
       var otherNdx = rand(node.connections.length);
@@ -128,7 +134,7 @@ function main() {
   makeMaze();
 
   // add entities
-  for (var ii = 0; ii < numAttendies; ++ii) {
+  for (var ii = 0; ii < g.numAttendies; ++ii) {
     var node = nodes[rand(nodes.length)];
     var entity = new Entity(node);
     entities.push(entity);
@@ -150,7 +156,6 @@ function main() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.save();
-    ctx.scale(50, 50);
     entities.forEach(function(entity) {
       entity.draw(ctx);
     })
