@@ -3,6 +3,7 @@
 window.onload = main;
 var canvas;
 var ctx;
+var dbg;
 
 var g = {
   nodeSpacing: 50,
@@ -24,11 +25,25 @@ var lerp = function(a, b, v) {
   return a + (b - a) * v;
 };
 
+var inherit = function(subClass, superClass) {
+  /**
+   * TmpClass.
+   * @ignore
+   * @constructor
+   */
+  var TmpClass = function() { };
+  TmpClass.prototype = superClass.prototype;
+  subClass.prototype = new TmpClass();
+};
+
 // Nodes just lerp from startPositon to targetNode where
 // this,moveTimer += elapsedTime
 // lerp = this.moveTimer / this.speed;
 // postion = lerp(this.startPostion, this.targetNode.position, lerp)
 Entity = function(startNode) {
+  if (!startNode) {
+    throw 'no start node';
+  }
   this.targetNode = startNode;
   this.oldNode = startNode;
   this.color = 'rgb(' + 64 + "," + 64 + "," + (128 + rand(128)) + ")";
@@ -49,22 +64,61 @@ Entity.prototype.process = function(elapsedTime) {
 };
 
 Entity.prototype.draw = function(ctx) {
-  var l = this.moveTimer / this.speed;
-  var x = lerp(this.startX, this.targetNode.x, l);
-  var y = lerp(this.startY, this.targetNode.y, l);
-  ctx.fillStyle = this.color;
-  ctx.fillRect(x, y, 5, 5);
+  try {
+    var l = this.moveTimer / this.speed;
+    var x = lerp(this.startX, this.targetNode.x, l);
+    var y = lerp(this.startY, this.targetNode.y, l);
+    ctx.fillStyle = this.color;
+    ctx.fillRect(x, y, 5, 5);
+  } catch (e) {
+    console.log(this);
+    throw 'foo';
+  }
 };
 
 Entity.prototype.chooseDestination = function() {
   // Choose a new destination.
   var nodes = this.targetNode.connections;
-  var node = nodes[rand(nodes.length)];
+  if (nodes.length == 0) {
+    dbg = this;
+    console.log(this);
+    throw 'no nodes';
+  }
+  var nodeNdx = rand(nodes.length);
+  var node = nodes[nodeNdx];
+  if (!node) {
+    dbg = this;
+    this.fuck = nodeNdx;
+    console.log(this);
+    console.log(nodeNdx);
+    throw 'wtf';
+  }
   this.oldNode = this.targetNode;
   this.targetNode = node;
   this.moveTimer = 0;
   this.startX = this.oldNode.x;
   this.startY = this.oldNode.y;
+};
+
+var Player = function(startNode) {
+  this.color = "red";
+  this.startX = startNode.x;
+  this.startY = startNode.y;
+  this.targetNode = startNode;
+  this.moveTimer = 0;
+  this.speed = 1;
+};
+
+Player.prototype.process = function(elaspedTime) {
+
+};
+
+Player.prototype.draw = function(ctx) {
+  var l = this.moveTimer / this.speed;
+  var x = lerp(this.startX, this.targetNode.x, l);
+  var y = lerp(this.startY, this.targetNode.y, l);
+  ctx.fillStyle = this.color;
+  ctx.fillRect(x, y, 5, 5);
 };
 
 Node = function(x, y) {
@@ -111,7 +165,7 @@ function makeMaze() {
 
   for (var ii = 0; ii < g.numConnectionsToBreak; ++ii) {
     var node = nodes[rand(nodes.length)];
-    if (node.connections.length > 1) {
+    if (node.connections.length > 2) {
       var otherNdx = rand(node.connections.length);
       var other = node.connections[otherNdx];
       // find our node on the connection
@@ -140,6 +194,8 @@ function main() {
     entities.push(entity);
   }
 
+  var player = new Player(nodes[rand(nodes.length)]);
+
   var then = (new Date()).getTime() * 0.001;
   function process() {
     var now = (new Date()).getTime() * 0.001;
@@ -147,6 +203,7 @@ function main() {
     elapsedTime = Math.min(elapsedTime, 0.1);  // not faster than 10fps
     then = now;
 
+    player.process(elapsedTime);
     // Process entities
     entities.forEach(function(entity) {
       entity.process(elapsedTime);
@@ -159,6 +216,7 @@ function main() {
     entities.forEach(function(entity) {
       entity.draw(ctx);
     })
+    player.draw(ctx);
     ctx.restore();
 
     requestAnimationFrame(process);
