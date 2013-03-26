@@ -12,11 +12,13 @@ var g = {
   numAttendies: 1001,
   numConnectionsToBreak: 40,
   numNodesToDelete: 15,
+  rangeToPlayer: 1,
 };
 
 var nodes = [];
 var gridToNodeMap = [];
 var entities = [];
+var player;
 
 var rand = function(range) {
   return Math.floor(Math.random() * range);
@@ -48,33 +50,40 @@ Entity = function(startNode) {
   this.targetNode = startNode;
   this.oldNode = startNode;
   this.color = 'rgb(' + 64 + "," + 64 + "," + (128 + rand(128)) + ")";
+  this.flyerColor = 'rgb(' + 64 + "," + (128 + rand(128)) + "," + 64 + ")";
   this.speed = 1 + Math.random() * 0.2;
   this.startX = 0;
   this.startY = 0;
   this.haveFlyer = false;
   this.chooseDestination();
   this.moveTimer = Math.random() * this.speed;
+  this.process(0);
 };
 
 Entity.prototype.process = function(elapsedTime) {
   this.moveTimer += elapsedTime;
-  var lerp = this.moveTimer / this.speed;
-  if (lerp >= 1) {
+  var l = this.moveTimer / this.speed;
+  if (l >= 1) {
     this.chooseDestination();
+  }
+
+  // TODO(gman): Optimize by checking only things on same nodes.
+  var l = this.moveTimer / this.speed;
+  this.x = lerp(this.startX, this.targetNode.x, l);
+  this.y = lerp(this.startY, this.targetNode.y, l);
+
+  if (player) {
+    var dx = this.x - player.x;
+    var dy = this.y - player.y;
+    if (dx * dx + dy * dy < g.rangeToPlayer * g.rangeToPlayer) {
+      this.haveFlyer = true;
+    }
   }
 };
 
 Entity.prototype.draw = function(ctx) {
-  try {
-    var l = this.moveTimer / this.speed;
-    var x = lerp(this.startX, this.targetNode.x, l);
-    var y = lerp(this.startY, this.targetNode.y, l);
-    ctx.fillStyle = this.color;
-    ctx.fillRect(x, y, 5, 5);
-  } catch (e) {
-    console.log(this);
-    throw 'foo';
-  }
+  ctx.fillStyle = this.haveFlyer ? this.flyerColor : this.color;
+  ctx.fillRect(this.x, this.y, 5, 5);
 };
 
 Entity.prototype.chooseDestination = function() {
@@ -108,18 +117,18 @@ var Player = function(startNode) {
   this.targetNode = startNode;
   this.moveTimer = 0;
   this.speed = 1;
+  this.process(0);
 };
 
 Player.prototype.process = function(elaspedTime) {
-
+  var l = this.moveTimer / this.speed;
+  this.x = lerp(this.startX, this.targetNode.x, l);
+  this.y = lerp(this.startY, this.targetNode.y, l);
 };
 
 Player.prototype.draw = function(ctx) {
-  var l = this.moveTimer / this.speed;
-  var x = lerp(this.startX, this.targetNode.x, l);
-  var y = lerp(this.startY, this.targetNode.y, l);
   ctx.fillStyle = this.color;
-  ctx.fillRect(x, y, 5, 5);
+  ctx.fillRect(this.x, this.y, 5, 5);
 };
 
 Node = function(x, y) {
@@ -255,7 +264,7 @@ function main() {
   makeMaze();
   addAttendies();
 
-  var player = new Player(nodes[rand(nodes.length)]);
+  player = new Player(nodes[rand(nodes.length)]);
 
   var requestId;
   var then = (new Date()).getTime() * 0.001;
