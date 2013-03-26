@@ -245,7 +245,7 @@ function main() {
     player.draw(ctx);
     ctx.restore();
 
-    var requestId = requestAnimFrame(process);
+    requestId = requestAnimFrame(process);
   }
   process();
 
@@ -262,8 +262,30 @@ function main() {
     }
   };
 
+  var setVisibilityChangeFn = function(onchange) {
+    var hidden = "hidden";
+
+    // Standards:
+    if (hidden in document) {
+      document.addEventListener("visibilitychange", onchange);
+    } else if ((hidden = "mozHidden") in document) {
+      document.addEventListener("mozvisibilitychange", onchange);
+    } else if ((hidden = "webkitHidden") in document) {
+      document.addEventListener("webkitvisibilitychange", onchange);
+    } else if ((hidden = "msHidden") in document) {
+      document.addEventListener("msvisibilitychange", onchange);
+    }
+  };
+
   window.addEventListener('focus', resume, false);
   window.addEventListener('blur', pause, false);
+  setVisibilityChangeFn(function(event) {
+    if (window.hidden) {
+      pause();
+    } else {
+      resume();
+    }
+  });
 }
 
 /**
