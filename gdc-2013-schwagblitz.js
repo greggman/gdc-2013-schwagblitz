@@ -190,6 +190,24 @@ function makeMaze() {
       node.connections.splice(otherNdx, 1);
     }
   }
+
+  // Remove nodes with no connections
+  var keepNodes = [];
+  nodes.forEach(function(node) {
+    if (node.connections.length) {
+      keepNodes.push(node);
+    }
+  });
+  nodes = keepNodes;
+}
+
+function addAttendies() {
+  // add entities
+  for (var ii = 0; ii < g.numAttendies; ++ii) {
+    var node = nodes[rand(nodes.length)];
+    var entity = new Entity(node);
+    entities.push(entity);
+  }
 }
 
 function main() {
@@ -199,13 +217,7 @@ function main() {
   canvas.height = 512;
 
   makeMaze();
-
-  // add entities
-  for (var ii = 0; ii < g.numAttendies; ++ii) {
-    var node = nodes[rand(nodes.length)];
-    var entity = new Entity(node);
-    entities.push(entity);
-  }
+  addAttendies();
 
   var player = new Player(nodes[rand(nodes.length)]);
 
