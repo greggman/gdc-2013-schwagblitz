@@ -263,17 +263,14 @@ function main() {
   };
 
   var setVisibilityChangeFn = function(onchange) {
-    var hidden = "hidden";
-
-    // Standards:
-    if (hidden in document) {
-      document.addEventListener("visibilitychange", onchange);
-    } else if ((hidden = "mozHidden") in document) {
-      document.addEventListener("mozvisibilitychange", onchange);
-    } else if ((hidden = "webkitHidden") in document) {
-      document.addEventListener("webkitvisibilitychange", onchange);
-    } else if ((hidden = "msHidden") in document) {
-      document.addEventListener("msvisibilitychange", onchange);
+    var hidden = "hidden"
+    var prefixes = ["", "moz", "webkit", "ms", "op"];
+    for (var ii = 0; ii < prefixes.length; ++ii) {
+      var prefix = prefixes[ii];
+      if ((prefix + hidden) in document) {
+        document.addEventListener(prefix + "visibilitychange", onchange);
+      }
+      hidden = "Hidden";
     }
   };
 
