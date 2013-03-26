@@ -33,11 +33,11 @@ Entity = function(startNode) {
   this.oldNode = startNode;
   this.color = 'rgb(' + rand(256) + "," + rand(256) + "," + rand(256) + ")";
   this.speed = 1 + Math.random() * 0.2;
-  this.moveTimer = 0;
   this.startX = 0;
   this.startY = 0;
   this.haveFlyer = false;
   this.chooseDestination();
+  this.moveTimer = Math.random() * this.speed;
 };
 
 Entity.prototype.process = function(elapsedTime) {
