@@ -126,10 +126,49 @@ Node = function(x, y) {
   this.x = x;
   this.y = y;
   this.connections = [];
+  this.byDir = [];
+};
+
+// dir:
+//  0: up/north
+//  1: right/east
+//  2: down/south
+//  3: left/west
+Node.prototype.getConnectionInDirection = function(dir) {
+  for (var ii = 0; ii < this.connections.length; ++ii) {
+  }
 };
 
 Node.prototype.addConnection = function(node) {
   this.connections.push(node);
+
+  // add byDir connection. Assumes there are 4 directions.
+  var dir = -1;
+  if (node.x > this.x) {
+    dir = 1;
+  } else if (node.x < this.x) {
+    dir = 3;
+  } else if (node.y > this.y) {
+    dir = 2;
+  } else if (node.y < this.y) {
+    dir = 0;
+  }
+  this.byDir[dir] = node;
+};
+
+Node.prototype.removeConnection = function(other) {
+  var ndx = this.connections.indexOf(other);
+  if (ndx < 0) {
+    throw 'wat?'
+  }
+  this.connections.splice(ndx, 1);
+
+  // remove byDir connection. Assumes there are 4 directions.
+  for (var ii = 0; ii < 4; ++ii) {
+    if (this.byDir[ii] == other) {
+      this.byDir[ii] = undefined;
+    }
+  }
 };
 
 function connectNodes(node, x, y) {
@@ -181,13 +220,10 @@ function makeMaze() {
     if (node.connections.length > 3) {
       var otherNdx = rand(node.connections.length);
       var other = node.connections[otherNdx];
-      // find our node on the connection
-      var ndx = other.connections.indexOf(node);
-      if (ndx < 0) {
-        throw 'wat?'
+      if (other.connections.length > 3) {
+        node.removeConnection(other);
+        other.removeConnection(node);
       }
-      other.connections.splice(ndx, 1);
-      node.connections.splice(otherNdx, 1);
     }
   }
 
