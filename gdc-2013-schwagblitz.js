@@ -4,11 +4,14 @@ window.onload = main;
 var canvas;
 var ctx;
 var dbg;
+var elemOut;
+var elemTrash
+var elemHome;
 
 var g = {
   scale: 4,
   entitySize: 5,
-  nodeSpacing: 50,
+  nodeSpacing: 64,
   mazeWidth: 10,
   mazeHeight: 10,
   numAttendies: 1001,
@@ -18,6 +21,9 @@ var g = {
   rangeToPlayer: 1,
   rangeToTrashcan: 1,
   keyState: [],
+  numFlyersOut: 0,
+  numFlyersTrashed: 0,
+  numFlyersHome: 0,
 };
 
 var nodes = [];
@@ -118,6 +124,8 @@ Entity.prototype.process = function(elapsedTime) {
     var dy = this.y - player.y;
     if (dx * dx + dy * dy < g.rangeToPlayer * g.rangeToPlayer) {
       this.hasFlyer = true;
+      ++g.numFlyersOut;
+      elemOut.innerText = g.numFlyersOut.toString();
     }
   }
 };
@@ -145,8 +153,10 @@ Entity.prototype.chooseDestination = function() {
     throw 'wtf';
   }
   this.oldNode = this.targetNode;
-  if (this.oldNode.trashcan) {
+  if (this.hasFlyer && this.oldNode.trashcan) {
     this.hasFlyer = false;
+    ++g.numFlyersTrashed;
+    elemTrash.innerText = g.numFlyersTrashed.toString();
   }
   this.targetNode = node;
   this.moveTimer = 0;
@@ -413,11 +423,20 @@ function loadImages() {
   });
 }
 
+function resizeCanvas() {
+  if (canvas.width != canvas.clientWidth ||
+      canvas.height != canvas.clientHeight) {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+  }
+}
+
 function main() {
-  var canvas = document.getElementById("c");
-  var ctx = canvas.getContext("2d");
-  canvas.width = 512;
-  canvas.height = 512;
+  elemOut = document.getElementById("flyersout");
+  elemTrash = document.getElementById("flyerstrashed");
+  elemHome = document.getElementById("flyershome");
+  canvas = document.getElementById("c");
+  ctx = canvas.getContext("2d");
 
   loadImages();
   makeMaze();
@@ -435,7 +454,11 @@ function main() {
     then = now;
     clock += elapsedTime;
 
+    resizeCanvas();
+
+    // Superfulous comment.
     player.process(elapsedTime);
+
     // Process entities
     entities.forEach(function(entity) {
       entity.process(elapsedTime);
@@ -449,7 +472,6 @@ function main() {
     ctx.save();
     var xoff = ctx.canvas.width / g.scale / 2;
     var yoff = ctx.canvas.height / g.scale / 2;
-//    ctx.translate(xoff, yoff);
     ctx.scale(g.scale, g.scale);
     ctx.translate(-player.x + xoff, -player.y + yoff);
 
