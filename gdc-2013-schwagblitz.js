@@ -6,6 +6,7 @@ var ctx;
 var dbg;
 
 var g = {
+  scale: 4,
   nodeSpacing: 50,
   mazeWidth: 10,
   mazeHeight: 10,
@@ -368,6 +369,11 @@ function main() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.save();
+    var xoff = ctx.canvas.width / g.scale / 2;
+    var yoff = ctx.canvas.height / g.scale / 2;
+//    ctx.translate(xoff, yoff);
+    ctx.scale(g.scale, g.scale);
+    ctx.translate(-player.x + xoff, -player.y + yoff);
     entities.forEach(function(entity) {
       entity.draw(ctx);
     });
