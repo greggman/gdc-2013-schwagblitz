@@ -34,34 +34,22 @@ var player;
 var logos = [];
 var logoImages = [];
 var logoURLs = [
-  "images/1ien2upgsrk4kj4su7cjvicc0xav9zly.jpg",
-  "images/351130122__67r4670.jpg",
-  "images/andy_vic_sundar.jpg",
-  "images/badges_screenshot.jpg",
-  "images/berkeley+filler+photo+1.jpg",
-  "images/booth.jpg",
-  "images/bridge.jpg",
-//  "images/bse%e2%80%99s+solar+energy+development+center..jpg",
-  "images/d4g11-matteolopez-hr.jpg",
-  "images/floyds.jpg",
-  "images/img_0198.jpg",
-  "images/io+live.jpg",
-  "images/japan+image.jpg",
-  "images/kai_hao_videochat.jpg",
-  "images/ken+thompson+japan+prize+68.jpg",
-  "images/kingsmen+site+visit+photo_v2.jpg",
-  "images/natori yagawahama before-after.jpg",
-  "images/newpost_old.jpg",
-  "images/pop-up.jpg",
-  "images/presenters+onstage.jpg",
-  "images/searchteam.jpg",
-  "images/solarcity+graphic.jpg",
-  "images/story+hd_01.jpg",
-  "images/translate1.jpg",
-  "images/turbine+77.jpg",
-  "images/vikas+on+stage.jpg",
-  "images/workshops1.jpg",
-  "images/yt+person+finder.jpg",
+  "images/AMD-logo1.jpg",
+  "images/ARM_logo-728-75.jpg",
+  "images/Epic_logoE3_small.jpg",
+  "images/Logo-Tapjoy.png",
+  "images/Nvidia_logo.png",
+  "images/PSN-Logo.jpg",
+  "images/Qualcomm-Logo.jpg",
+  "images/Unity_3D_logo.png",
+  "images/adobe-logo.jpg",
+  "images/autodesk_logo.jpg",
+  "images/games_logo_big.jpg",
+  "images/gdc13_logo.jpg",
+  "images/large.jpg",
+  "images/mslogo_large_verge_medium_landscape.jpg",
+  "images/nintendo_logo.jpg",
+  "images/sega logo.gif",
 ];
 
 var rand = function(range) {
@@ -465,7 +453,7 @@ function main() {
     })
 
     // Clear
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     // Scale and Scroll
