@@ -15,6 +15,7 @@ var g = {
   numTrashcans: 20,
   rangeToPlayer: 1,
   rangeToTrashcan: 1,
+  keyState: [],
 };
 
 var nodes = [];
@@ -64,17 +65,20 @@ Entity = function(startNode) {
 };
 
 Entity.prototype.process = function(elapsedTime) {
+  // Move
   this.moveTimer += elapsedTime;
   var l = this.moveTimer / this.speed;
   if (l >= 1) {
     this.chooseDestination();
   }
 
-  // TODO(gman): Optimize by checking only things on same nodes.
+  // Update position
   var l = this.moveTimer / this.speed;
   this.x = lerp(this.startX, this.targetNode.x, l);
   this.y = lerp(this.startY, this.targetNode.y, l);
 
+  // TODO(gman): Optimize by checking only things on same nodes.
+  // Check if we touched the player.
   if (player) {
     var dx = this.x - player.x;
     var dy = this.y - player.y;
@@ -132,15 +136,59 @@ var Player = function(startNode) {
   this.startX = startNode.x;
   this.startY = startNode.y;
   this.targetNode = startNode;
-  this.moveTimer = 0;
   this.speed = 1;
+  this.moveTimer = this.speed;
+  this.dir = rand(4);
   this.process(0);
 };
 
-Player.prototype.process = function(elaspedTime) {
+Player.prototype.process = function(elapsedTime) {
+  // Move
+  this.moveTimer += elapsedTime;
+  var l = this.moveTimer / this.speed;
+  if (l >= 1) {
+    this.chooseDestination();
+  }
+
+  // Update position
   var l = this.moveTimer / this.speed;
   this.x = lerp(this.startX, this.targetNode.x, l);
   this.y = lerp(this.startY, this.targetNode.y, l);
+}
+
+Player.prototype.chooseDestination = function() {
+  var dir = this.dir;
+  var delta = 0;
+  if (g.keyState[37]) { // left
+    delta = -1;
+  }
+  if (g.keyState[39] && g.keyState[39] > g.keyState[37]) {
+    delta = 1;
+  }
+  var node = this.targetNode;
+  var newTarget = undefined;
+  var count = 0;
+  for (;;) {
+    dir = (dir + 4 + delta) % 4;
+    newTarget = node.byDir[dir];
+    if (newTarget) {
+      break;
+    }
+    if (delta == 0) {
+      delta = rand(2) ? -1 : 1;
+    }
+    ++count;
+    if (count == 5) {
+      console.log(this);
+      throw 'WTF!';
+    }
+  }
+
+  this.dir = dir;
+  this.targetNode = newTarget;
+  this.moveTimer = 0;
+  this.startX = node.x;
+  this.startY = node.y;
 };
 
 Player.prototype.draw = function(ctx) {
@@ -301,12 +349,14 @@ function main() {
   player = new Player(nodes[rand(nodes.length)]);
 
   var requestId;
+  var clock = 0;
   var then = (new Date()).getTime() * 0.001;
   function process() {
     var now = (new Date()).getTime() * 0.001;
     var elapsedTime = now - then;
     elapsedTime = Math.min(elapsedTime, 0.1);  // not faster than 10fps
     then = now;
+    clock += elapsedTime;
 
     player.process(elapsedTime);
     // Process entities
@@ -335,6 +385,10 @@ function main() {
   }
   process();
 
+  var clearKeys = function() {
+    g.keyState = [];
+  };
+
   var resume = function() {
     if (requestId === undefined) {
       process();
@@ -360,6 +414,30 @@ function main() {
     }
   };
 
+  var keyCodeToDirection = function(keyCode) {
+    switch (keyCode) {
+    case 40: // down
+      return 2;
+    case 37: // left
+      return 3;
+    case 38: // up
+      return 0;
+    case 39: // right
+      return 1;
+    }
+    return -1;
+  };
+
+  var keydown = function(event) {
+    g.keyState[event.keyCode] = clock;
+  };
+
+  var keyup = function(event) {
+    g.keyState[event.keyCode] = 0;
+  };
+
+  window.addEventListener('keydown', keydown, false);
+  window.addEventListener('keyup', keyup, false);
   window.addEventListener('focus', resume, false);
   window.addEventListener('blur', pause, false);
   setVisibilityChangeFn(function(event) {
