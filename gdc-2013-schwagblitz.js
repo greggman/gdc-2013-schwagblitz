@@ -7,6 +7,7 @@ var dbg;
 
 var g = {
   scale: 4,
+  entitySize: 5,
   nodeSpacing: 50,
   mazeWidth: 10,
   mazeHeight: 10,
@@ -24,6 +25,38 @@ var trashcans = [];
 var gridToNodeMap = [];
 var entities = [];
 var player;
+var logos = [];
+var logoImages = [];
+var logoURLs = [
+  "images/1ien2upgsrk4kj4su7cjvicc0xav9zly.jpg",
+  "images/351130122__67r4670.jpg",
+  "images/andy_vic_sundar.jpg",
+  "images/badges_screenshot.jpg",
+  "images/berkeley+filler+photo+1.jpg",
+  "images/booth.jpg",
+  "images/bridge.jpg",
+//  "images/bse%e2%80%99s+solar+energy+development+center..jpg",
+  "images/d4g11-matteolopez-hr.jpg",
+  "images/floyds.jpg",
+  "images/img_0198.jpg",
+  "images/io+live.jpg",
+  "images/japan+image.jpg",
+  "images/kai_hao_videochat.jpg",
+  "images/ken+thompson+japan+prize+68.jpg",
+  "images/kingsmen+site+visit+photo_v2.jpg",
+  "images/natori yagawahama before-after.jpg",
+  "images/newpost_old.jpg",
+  "images/pop-up.jpg",
+  "images/presenters+onstage.jpg",
+  "images/searchteam.jpg",
+  "images/solarcity+graphic.jpg",
+  "images/story+hd_01.jpg",
+  "images/translate1.jpg",
+  "images/turbine+77.jpg",
+  "images/vikas+on+stage.jpg",
+  "images/workshops1.jpg",
+  "images/yt+person+finder.jpg",
+];
 
 var rand = function(range) {
   return Math.floor(Math.random() * range);
@@ -91,7 +124,7 @@ Entity.prototype.process = function(elapsedTime) {
 
 Entity.prototype.draw = function(ctx) {
   ctx.fillStyle = this.hasFlyer ? this.flyerColor : this.color;
-  ctx.fillRect(this.x, this.y, 5, 5);
+  ctx.fillRect(this.x, this.y, g.entitySize, g.entitySize);
 };
 
 Entity.prototype.chooseDestination = function() {
@@ -129,7 +162,7 @@ var Trashcan = function(node) {
 
 Trashcan.prototype.draw = function(ctx) {
   ctx.fillStyle = "#ff00ff";
-  ctx.fillRect(this.x, this.y, 5, 5);
+  ctx.fillRect(this.x, this.y, g.entitySize, g.entitySize);
 };
 
 var Player = function(startNode) {
@@ -194,7 +227,25 @@ Player.prototype.chooseDestination = function() {
 
 Player.prototype.draw = function(ctx) {
   ctx.fillStyle = this.color;
-  ctx.fillRect(this.x, this.y, 5, 5);
+  ctx.fillRect(this.x, this.y, g.entitySize, g.entitySize);
+};
+
+var Logo = function(x, y, width, height, img) {
+  this.x = x;
+  this.y = y;
+  this.width = width;
+  this.height = height;
+  this.img = img;
+  this.color = 'rgb(' + (128 + rand(128)) + "," + (128 + rand(128))  + "," + (128 + rand(128)) + ")";
+};
+
+Logo.prototype.draw = function(ctx) {
+  if (this.img.loaded) {
+    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  } else {
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
 };
 
 Node = function(x, y) {
@@ -327,6 +378,18 @@ function makeMaze() {
       node.addTrashcan(trashcan);
     }
   }
+
+  // Place logos
+  for (var yy = 0; yy < g.mazeHeight; ++yy) {
+    for (var xx = 0; xx < g.mazeWidth; ++xx) {
+      var x = xx * g.nodeSpacing + g.entitySize;
+      var y = yy * g.nodeSpacing + g.entitySize;
+      var width  = g.nodeSpacing - g.entitySize;
+      var height = g.nodeSpacing - g.entitySize;
+      var img = logoImages[rand(logoImages.length)];
+      logos.push(new Logo(x, y, width, height, img));
+    }
+  }
 }
 
 function addAttendies() {
@@ -338,12 +401,25 @@ function addAttendies() {
   }
 }
 
+function loadImages() {
+  logoURLs.forEach(function(url) {
+    var img = new Image();
+    img.src = url;
+    img.loaded = false;
+    img.onload = function() {
+      img.loaded = true;
+    };
+    logoImages.push(img);
+  });
+}
+
 function main() {
   var canvas = document.getElementById("c");
   var ctx = canvas.getContext("2d");
   canvas.width = 512;
   canvas.height = 512;
 
+  loadImages();
   makeMaze();
   addAttendies();
 
@@ -365,15 +441,24 @@ function main() {
       entity.process(elapsedTime);
     })
 
-    // Draw Entities
+    // Clear
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    // Scale and Scroll
     ctx.save();
     var xoff = ctx.canvas.width / g.scale / 2;
     var yoff = ctx.canvas.height / g.scale / 2;
 //    ctx.translate(xoff, yoff);
     ctx.scale(g.scale, g.scale);
     ctx.translate(-player.x + xoff, -player.y + yoff);
+
+    // Draw Booths
+    logos.forEach(function(logo) {
+      logo.draw(ctx);
+    });
+
+    // Draw Entities
     entities.forEach(function(entity) {
       entity.draw(ctx);
     });
