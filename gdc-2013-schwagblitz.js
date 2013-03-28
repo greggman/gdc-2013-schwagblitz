@@ -384,13 +384,32 @@ function makeMaze() {
   // Place logos
   for (var yy = 0; yy < g.mazeHeight; ++yy) {
     for (var xx = 0; xx < g.mazeWidth; ++xx) {
-
-      var x = xx * g.nodeSpacing + g.entitySize;
-      var y = yy * g.nodeSpacing + g.entitySize;
-      var width  = g.nodeSpacing - g.entitySize;
-      var height = g.nodeSpacing - g.entitySize;
-      var img = logoImages[rand(logoImages.length)];
-      logos.push(new Logo(x, y, width, height, img));
+      var n = gridToNodeMap[yy][xx];
+      if (n && !n.hasLogo) {
+        var w = 1;
+        var h = 1;
+        n.hasLogo = true;
+        if (xx < g.mazeWidth - 1 &&
+            !gridToNodeMap[yy][xx + 1]) {
+          ++w;
+          gridToNodeMap[yy][xx + 1] = {
+            hasLogo: true,
+          };
+        }
+        if (yy < g.mazeHeight -1 &&
+            !gridToNodeMap[yy + 1][xx]) {
+          ++h;
+          gridToNodeMap[yy + 1][xx] = {
+            hasLogo: true,
+          };
+        }
+        var x = xx * g.nodeSpacing + g.entitySize;
+        var y = yy * g.nodeSpacing + g.entitySize;
+        var width  = g.nodeSpacing * w - g.entitySize;
+        var height = g.nodeSpacing * h - g.entitySize;
+        var img = logoImages[rand(logoImages.length)];
+        logos.push(new Logo(x, y, width, height, img));
+      }
     }
   }
 }
