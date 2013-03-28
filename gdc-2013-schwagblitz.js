@@ -309,7 +309,7 @@ function connectNodes(node, x, y) {
   if (row) {
     var dst = row[x];
     if (dst) {
-      node.addConnection(dst);
+      node.addConnection(dst.node);
     }
   }
 }
@@ -321,7 +321,7 @@ function makeMaze() {
     gridToNodeMap.push(gridRow);
     for (var xx = 0; xx < g.mazeWidth; ++xx) {
       var node = new Node(xx * g.nodeSpacing, yy * g.nodeSpacing);
-      gridRow.push(node);
+      gridRow.push({node:node});
       nodes.push(node);
     }
   }
@@ -340,10 +340,10 @@ function makeMaze() {
     for (var xx = 0; xx < g.mazeWidth; ++xx) {
       var node = gridToNodeMap[yy][xx];
       if (node) {
-        connectNodes(node, xx, yy - 1);
-        connectNodes(node, xx, yy + 1);
-        connectNodes(node, xx - 1, yy);
-        connectNodes(node, xx + 1, yy);
+        connectNodes(node.node, xx, yy - 1);
+        connectNodes(node.node, xx, yy + 1);
+        connectNodes(node.node, xx - 1, yy);
+        connectNodes(node.node, xx + 1, yy);
       }
     }
   }
@@ -384,6 +384,7 @@ function makeMaze() {
   // Place logos
   for (var yy = 0; yy < g.mazeHeight; ++yy) {
     for (var xx = 0; xx < g.mazeWidth; ++xx) {
+
       var x = xx * g.nodeSpacing + g.entitySize;
       var y = yy * g.nodeSpacing + g.entitySize;
       var width  = g.nodeSpacing - g.entitySize;
