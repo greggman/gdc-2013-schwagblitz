@@ -382,21 +382,21 @@ function makeMaze() {
   }
 
   // Place logos
-  for (var yy = 0; yy < g.mazeHeight; ++yy) {
-    for (var xx = 0; xx < g.mazeWidth; ++xx) {
+  for (var yy = 0; yy < g.mazeHeight - 1; ++yy) {
+    for (var xx = 0; xx < g.mazeWidth - 1; ++xx) {
       var n = gridToNodeMap[yy][xx];
       if (n && !n.hasLogo) {
         var w = 1;
         var h = 1;
         n.hasLogo = true;
-        if (xx < g.mazeWidth - 1 &&
+        if (xx < g.mazeWidth - 2 &&
             !gridToNodeMap[yy][xx + 1]) {
           ++w;
           gridToNodeMap[yy][xx + 1] = {
             hasLogo: true,
           };
         }
-        if (yy < g.mazeHeight -1 &&
+        if (yy < g.mazeHeight - 2 &&
             !gridToNodeMap[yy + 1][xx]) {
           ++h;
           gridToNodeMap[yy + 1][xx] = {
