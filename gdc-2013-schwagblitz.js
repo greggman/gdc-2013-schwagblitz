@@ -136,20 +136,8 @@ Entity.prototype.draw = function(ctx) {
 Entity.prototype.chooseDestination = function() {
   // Choose a new destination.
   var nodes = this.targetNode.connections;
-  if (nodes.length == 0) {
-    dbg = this;
-    console.log(this);
-    throw 'no nodes';
-  }
   var nodeNdx = rand(nodes.length);
   var node = nodes[nodeNdx];
-  if (!node) {
-    dbg = this;
-    this.fuck = nodeNdx;
-    console.log(this);
-    console.log(nodeNdx);
-    throw 'wtf';
-  }
   this.oldNode = this.targetNode;
   if (this.hasFlyer && this.oldNode.trashcan) {
     this.hasFlyer = false;
@@ -205,12 +193,21 @@ Player.prototype.process = function(elapsedTime) {
 Player.prototype.chooseDestination = function() {
   var dir = this.dir;
   var delta = 0;
+
   if (g.keyState[37]) { // left
     delta = -1;
   }
   if (g.keyState[39] && g.keyState[39] > g.keyState[37]) {
     delta = 1;
   }
+
+  if (g.pressLeft) { // left
+    delta = -1
+  }
+  if (g.pressRight && g.pressRight > g.pressLeft) {
+    delta = 1;
+  }
+
   var node = this.targetNode;
   var newTarget = undefined;
   var count = 0;
@@ -600,10 +597,36 @@ function main() {
     g.keyState[event.keyCode] = 0;
   };
 
+  var touch = document.getElementById("touch");
+
+  var pointerup = function(event) {
+    var pointers = event.getPointerList();
+    pointers.forEach(function(pointer) {
+      if (pointer.clientX < touch.clientWidth * 0.5) {
+        g.pressLeft = 0;
+      } else {
+        g.pressRight = 0;
+      }
+    });
+  };
+
+  var pointerdown = function(event) {
+    var pointers = event.getPointerList();
+    pointers.forEach(function(pointer) {
+      if (pointer.clientX < touch.clientWidth * 0.5) {
+        g.pressLeft = clock;
+      } else {
+        g.pressRight = clock;
+      }
+    });
+  };
+
   window.addEventListener('keydown', keydown, false);
   window.addEventListener('keyup', keyup, false);
   window.addEventListener('focus', resume, false);
   window.addEventListener('blur', pause, false);
+  touch.addEventListener('pointerdown', pointerdown, false);
+  touch.addEventListener('pointerup', pointerup, false);
   setVisibilityChangeFn(function(event) {
     if (window.hidden) {
       pause();
