@@ -28,6 +28,7 @@ var g = {
   numFlyersOut: 0,
   numFlyersTrashed: 0,
   numFlyersHome: 0,
+  trashcanSize: 10,
 };
 
 var nodes = [];
@@ -54,6 +55,11 @@ var logoURLs = [
   "images/mslogo_large_verge_medium_landscape.jpg",
   "images/nintendo_logo.jpg",
   "images/sega logo.gif",
+];
+
+var images = [];
+var imageURLs = [
+  "images/trashcan.png",
 ];
 
 var rand = function(range) {
@@ -163,8 +169,12 @@ var Trashcan = function(node) {
 };
 
 Trashcan.prototype.draw = function(ctx) {
-  ctx.fillStyle = "#ff00ff";
-  ctx.fillRect(this.x, this.y, g.entitySize, g.entitySize);
+  if (images[0].loaded) {
+    ctx.drawImage(images[0].img, this.x, this.y, g.trashcanSize, g.trashcanSize);
+  } else {
+    ctx.fillStyle = "#ff00ff";
+    ctx.fillRect(this.x, this.y, g.entitySize, g.entitySize);
+  }
 };
 
 var Player = function(startNode) {
@@ -424,33 +434,43 @@ function addAttendies() {
 }
 
 function loadImages() {
-  logoURLs.forEach(function(url) {
-    var img = new Image();
-    var logo = {
-      img: img,
-      loaded: false,
-    };
-    logo.img.src = url;
-    logo.img.onload = function() {
-      var c = document.createElement("canvas");
-      c.width = g.logoResolution;
-      c.height = g.logoResolution;
-      var ctx = c.getContext("2d");
-      ctx.fillStyle = g.carpetColor;
-      ctx.fillRect(0, 0, g.logoResolution, g.logoResolution);
-      ctx.fillStyle = "white";
-      var logoSize = g.logoResolution - g.logoSpace * 2;
-      ctx.fillRect(g.logoSpace, g.logoSpace, logoSize, logoSize);
-      var logoMax = Math.max(img.width, img.height);
-      var w = logoSize * img.width / logoMax;
-      var h = logoSize * img.height / logoMax;
-      var x = g.logoSpace + (logoSize - w) * 0.5;
-      var y = g.logoSpace + (logoSize - h) * 0.5;
-      ctx.drawImage(img, x, y, w, h);
-      logo.img = c;
-      logo.loaded = true;
-    };
-    logoImages.push(logo);
+  var loadArray = function(urls, dest, onLoadFn) {
+    urls.forEach(function(url) {
+      var img = new Image();
+      var logo = {
+        img: img,
+        loaded: false,
+      };
+      logo.img.src = url;
+      logo.img.onload = function() {
+        logo.loaded = true;
+        onLoadFn(logo);
+      };
+      dest.push(logo);
+    });
+  };
+  loadArray(logoURLs, logoImages, function(logo) {
+    var img = logo.img;
+    var c = document.createElement("canvas");
+    c.width = g.logoResolution;
+    c.height = g.logoResolution;
+    var ctx = c.getContext("2d");
+    ctx.fillStyle = g.carpetColor;
+    ctx.fillRect(0, 0, g.logoResolution, g.logoResolution);
+    ctx.fillStyle = "white";
+    var logoSize = g.logoResolution - g.logoSpace * 2;
+    ctx.fillRect(g.logoSpace, g.logoSpace, logoSize, logoSize);
+    var logoMax = Math.max(img.width, img.height);
+    var w = logoSize * img.width / logoMax;
+    var h = logoSize * img.height / logoMax;
+    var x = g.logoSpace + (logoSize - w) * 0.5;
+    var y = g.logoSpace + (logoSize - h) * 0.5;
+    ctx.drawImage(img, x, y, w, h);
+    logo.img = c;
+  });
+
+  loadArray(imageURLs, images, function(obj) {
+    var img = obj.img;
   });
 }
 
