@@ -29,6 +29,8 @@ var g = {
   numFlyersTrashed: 0,
   numFlyersHome: 0,
   trashcanSize: 10,
+  press: [],
+  release: [],
 };
 
 var nodes = [];
@@ -201,10 +203,10 @@ Player.prototype.chooseDestination = function() {
     delta = 1;
   }
 
-  if (g.pressLeft) { // left
+  if (g.press[0]) { // left
     delta = -1
   }
-  if (g.pressRight && g.pressRight > g.pressLeft) {
+  if (g.press[1] && g.press[1] > g.press[0]) {
     delta = 1;
   }
 
@@ -601,23 +603,30 @@ function main() {
 
   var pointerup = function(event) {
     var pointers = event.getPointerList();
-    pointers.forEach(function(pointer) {
-      if (pointer.clientX < touch.clientWidth * 0.5) {
-        g.pressLeft = 0;
-      } else {
-        g.pressRight = 0;
-      }
-    });
+    if (!pointers) {
+      g.release.forEach(function(n) {
+        if (n !== undefined) {
+          g.press[n] = 0;
+        }
+      });
+      g.release = [];
+    } else{
+      pointers.forEach(function(pointer) {
+        var id = pointer.identifier || 0;
+        var n = g.release[id];
+        g.press[n] = 0;
+        g.release[id] = undefined;
+      });
+    }
   };
 
   var pointerdown = function(event) {
     var pointers = event.getPointerList();
     pointers.forEach(function(pointer) {
-      if (pointer.clientX < touch.clientWidth * 0.5) {
-        g.pressLeft = clock;
-      } else {
-        g.pressRight = clock;
-      }
+      var id = pointer.identifier || 0;
+      var n = (pointer.clientX < touch.clientWidth * 0.5) ? 0 : 1;
+      g.press[n] = clock;
+      g.release[id] = n;
     });
   };
 
@@ -625,8 +634,8 @@ function main() {
   window.addEventListener('keyup', keyup, false);
   window.addEventListener('focus', resume, false);
   window.addEventListener('blur', pause, false);
-  touch.addEventListener('pointerdown', pointerdown, false);
-  touch.addEventListener('pointerup', pointerup, false);
+  touch.addEventListener('pointerdown', pointerdown);
+  touch.addEventListener('pointerup', pointerup);
   setVisibilityChangeFn(function(event) {
     if (window.hidden) {
       pause();

@@ -1,0 +1,48 @@
+<!-- Licensed under a BSD license. See license.html for license -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Pointer test</title>
+<style>
+html, body {
+    font-size: 32px;
+    font-family: monospace;
+    width: 100%;
+    height: 100%;
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+#outside {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+#everything {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 2;
+}
+#touch {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+</style>
+<script src="js/pointer.min.js"></script>
+<script src="pointer-test.js"></script>
+</head>
+<body>
+<div id="outside">
+  <div id="everything"><div id="out"></div></div>
+  <div id="touch"></div>
+</div>
+</body>
+</html>
