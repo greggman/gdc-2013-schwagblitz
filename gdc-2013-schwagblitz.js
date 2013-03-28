@@ -12,6 +12,10 @@ var g = {
   scale: 4,
   entitySize: 5,
   nodeSpacing: 64,
+  logoResolution: 128,
+  logoSpace: 5,
+  backgroundColor: "rgb(150, 40, 40)",
+  carpetColor: "rgb(255, 80, 80)",
   mazeWidth: 10,
   mazeHeight: 10,
   numAttendies: 1001,
@@ -239,7 +243,7 @@ var Logo = function(x, y, width, height, img) {
 
 Logo.prototype.draw = function(ctx) {
   if (this.img.loaded) {
-    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+    ctx.drawImage(this.img.img, this.x, this.y, this.width, this.height);
   } else {
     ctx.fillStyle = this.color;
     ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -402,12 +406,31 @@ function addAttendies() {
 function loadImages() {
   logoURLs.forEach(function(url) {
     var img = new Image();
-    img.src = url;
-    img.loaded = false;
-    img.onload = function() {
-      img.loaded = true;
+    var logo = {
+      img: img,
+      loaded: false,
     };
-    logoImages.push(img);
+    logo.img.src = url;
+    logo.img.onload = function() {
+      var c = document.createElement("canvas");
+      c.width = g.logoResolution;
+      c.height = g.logoResolution;
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = g.carpetColor;
+      ctx.fillRect(0, 0, g.logoResolution, g.logoResolution);
+      ctx.fillStyle = "white";
+      var logoSize = g.logoResolution - g.logoSpace * 2;
+      ctx.fillRect(g.logoSpace, g.logoSpace, logoSize, logoSize);
+      var logoMax = Math.max(img.width, img.height);
+      var w = logoSize * img.width / logoMax;
+      var h = logoSize * img.height / logoMax;
+      var x = g.logoSpace + (logoSize - w) * 0.5;
+      var y = g.logoSpace + (logoSize - h) * 0.5;
+      ctx.drawImage(img, x, y, w, h);
+      logo.img = c;
+      logo.loaded = true;
+    };
+    logoImages.push(logo);
   });
 }
 
@@ -453,7 +476,7 @@ function main() {
     })
 
     // Clear
-    ctx.fillStyle = "white";
+    ctx.fillStyle = g.backgroundColor;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     // Scale and Scroll
