@@ -6,7 +6,6 @@ var dbg;
 var g = {
   keyState: [],
   press: [],
-  release: [],
 };
 
 var inherit = function(subClass, superClass) {
@@ -57,12 +56,6 @@ function main() {
       delta = 1;
     }
 
-    var releases = [];
-    g.release.forEach(function(value, index) {
-      if (value !== undefined) {
-        releases.push("release: " + index + " = " + value);
-      }
-    });
     var dir = (delta > 0) ? "right" : ((delta < 0) ? "left" : "straight");
     out.innerText =
         "dir: " + dir +
@@ -71,7 +64,6 @@ function main() {
         "\ng.press[0]:" + g.press[0] +
         "\ng.press[1]:" + g.press[1] +
         "\npath: " + path +
-        "\n" + releases.join("\n")
         "";
   };
   displayInputState();
@@ -131,43 +123,27 @@ function main() {
 
   var touch = document.getElementById("touch");
 
-  var pointerup = function(event) {
-    var pointers = event.getPointerList();
-    if (!pointers || pointers.length == 0) {
-      g.release.forEach(function(n) {
-        if (n !== undefined) {
-          g.press[n] = 0;
-        }
-      });
-      g.release = [];
-    } else{
-      pointers.forEach(function(pointer) {
-        var id = pointer.identifier || 0;
-        var n = g.release[id];
-        g.press[n] = 0;
-        g.release[id] = undefined;
-      });
-    }
-    displayInputState();
+  var handleTouch = function(down, dir) {
+    return function(event) {
+      g.press[dir] = down ? clock : 0;
+      displayInputState();
+    };
   };
 
-  var pointerdown = function(event) {
-    var pointers = event.getPointerList();
-    pointers.forEach(function(pointer) {
-      var id = pointer.identifier || 0;
-      var n = (pointer.clientX < touch.clientWidth * 0.5) ? 0 : 1;
-      g.press[n] = clock;
-      g.release[id] = n;
-    });
-    displayInputState();
+  var preventDefault = function(event) {
+    event.preventDefault();
   };
 
   window.addEventListener('keydown', keydown, false);
   window.addEventListener('keyup', keyup, false);
   window.addEventListener('focus', resume, false);
   window.addEventListener('blur', pause, false);
-  touch.addEventListener('pointerdown', pointerdown);
-  touch.addEventListener('pointerup', pointerup);
+  ["touchleft", "touchright"].forEach(function(id, index) {
+    var touch = document.getElementById(id);
+    touch.addEventListener('pointerdown', handleTouch(true, index));
+    touch.addEventListener('pointerup', handleTouch(false, index));
+    touch.addEventListener('pointermove', preventDefault);
+  });
   setVisibilityChangeFn(function(event) {
     if (window.hidden) {
       pause();
